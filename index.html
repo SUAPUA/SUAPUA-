@@ -1726,18 +1726,18 @@ label{color:#244044}
       <div id="authError" class="auth-error"></div>
 
       <div class="auth-form active" id="loginForm">
-        <div class="auth-field"><label>Email / Nomor HP</label><input id="loginIdentity" placeholder="contoh@email.com atau 0812..."></div>
+        <div class="auth-field"><label>Email</label><input id="loginIdentity" type="email" autocomplete="username" placeholder="contoh@email.com"></div>
         <div class="auth-field"><label>Password</label><div class="password-wrap"><input id="loginPassword" type="password" placeholder="Masukkan password"><button class="password-toggle" onclick="togglePassword('loginPassword',this)">Lihat</button></div></div>
         <div class="auth-actions">
           <button class="btn btn-primary" onclick="doLogin()">Masuk ke Akun</button>
           <button class="btn" style="background:#f1f5f3;color:#526a6d" onclick="continueGuest()">Lanjut sebagai tamu</button>
         </div>
-        <div class="auth-note">Demo prototipe: akun disimpan secara lokal di browser ini. Jangan gunakan password asli untuk demo.</div>
+        <div class="auth-note" id="authModeNote">Akun online memakai Supabase. Jika backend belum dikonfigurasi, login demo lokal tetap bisa digunakan di perangkat ini.</div>
       </div>
 
       <div class="auth-form" id="registerForm">
         <div class="auth-field"><label>Nama Lengkap *</label><input id="regName" placeholder="Nama Anda"></div>
-        <div class="auth-field"><label>Email / Nomor HP *</label><input id="regIdentity" placeholder="Email atau nomor HP"></div>
+        <div class="auth-field"><label>Email *</label><input id="regIdentity" type="email" autocomplete="email" placeholder="contoh@email.com"></div>
         <div class="auth-field"><label>Password *</label><div class="password-wrap"><input id="regPassword" type="password" placeholder="Minimal 6 karakter"><button class="password-toggle" onclick="togglePassword('regPassword',this)">Lihat</button></div><small>Password demo disimpan lokal pada perangkat.</small></div>
         <div class="auth-actions"><button class="btn btn-primary" onclick="doRegister()">Buat Akun</button></div>
       </div>
@@ -2311,6 +2311,10 @@ function setCloudStatus(online){
   const el=document.getElementById("cloudStatus");if(!el)return;
   el.innerText=online?"● Online":"● Lokal";
   el.classList.toggle("offline",!online);
+  const note=document.getElementById("authModeNote");
+  if(note)note.innerText=SUAPUA_CLOUD_CONFIGURED
+    ? "Akun terhubung ke sistem online SUAPUA."
+    : "Mode lokal aktif karena Supabase belum dikonfigurasi. Untuk akun online multi-pengguna, isi URL dan publishable/anon key Supabase.";
 }
 function getUserName(){
   if(cloudUser?.user_metadata?.full_name) return cloudUser.user_metadata.full_name;
@@ -2401,46 +2405,95 @@ function subscribeRealtime(){
 }
 
 async function doRegister(){
-  if(!cloudIsReady()){
-    showAuthError("Aplikasi belum terhubung ke backend online. Isi konfigurasi Supabase terlebih dahulu.");return;
-  }
   const name=document.getElementById("regName").value.trim();
   const identity=document.getElementById("regIdentity").value.trim().toLowerCase();
   const password=document.getElementById("regPassword").value;
   if(!name||!identity||password.length<6){showAuthError("Lengkapi nama, email, dan password minimal 6 karakter.");return}
-  if(!identity.includes("@")){showAuthError("Untuk akun online, gunakan email yang valid.");return}
-  const {data,error}=await cloudClient.auth.signUp({
-    email:identity,password,
-    options:{data:{full_name:name}}
-  });
-  if(error){showAuthError(error.message);return}
-  localStorage.setItem("suapuaUserName",name);
-  if(data?.session){
-    cloudUser=data.user;localStorage.setItem("suapuaLoggedIn","1");
-    await ensureCloudProfile(name);setCloudStatus(true);applyUserName();
-    document.getElementById("authScreen").classList.remove("show");
-    nav("home");await loadCloudReports();subscribeRealtime();
-    showToast("Akun online berhasil dibuat.");
-  }else{
-    showAuthError("Akun dibuat. Cek email Anda untuk verifikasi, lalu masuk kembali.");
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identity)){showAuthError("Masukkan alamat email yang valid.");return}
+
+  // ONLINE: gunakan Supabase jika konfigurasi sudah diisi.
+  if(cloudIsReady()){
+    const {data,error}=await cloudClient.auth.signUp({
+      email:identity,password,
+      options:{data:{full_name:name}}
+    });
+    if(error){
+      const msg=String(error.message||"");
+      showAuthError(msg.toLowerCase().includes("already registered")||msg.toLowerCase().includes("already been registered")
+        ? "Email tersebut sudah terdaftar. Silakan masuk menggunakan password yang benar."
+        : msg);
+      return;
+    }
+    localStorage.setItem("suapuaUserName",name);
+    if(data?.session&&data?.user){
+      cloudUser=data.user;localStorage.setItem("suapuaLoggedIn","1");
+      await ensureCloudProfile(name);setCloudStatus(true);applyUserName();
+      document.getElementById("authScreen").classList.remove("show");
+      await loadCloudReports();subscribeRealtime();nav("home");
+      showToast("Akun online berhasil dibuat.");
+    }else{
+      showAuthError("Akun berhasil dibuat. Cek email untuk verifikasi, lalu kembali ke halaman login.");
+      switchAuth("login");
+      document.getElementById("loginIdentity").value=identity;
+    }
+    return;
   }
+
+  // LOKAL: tetap bisa dipakai untuk demo jika Supabase belum dikonfigurasi.
+  localStorage.setItem("suapuaAccount",JSON.stringify({name,identity,password}));
+  localStorage.setItem("suapuaUserName",name);
+  localStorage.setItem("suapuaLoggedIn","1");
+  applyUserName();
+  document.getElementById("authScreen").classList.remove("show");
+  nav("home");
+  showToast("Akun demo berhasil dibuat dan Anda sudah masuk.");
 }
 
 async function doLogin(){
-  if(!cloudIsReady()){
-    showAuthError("Backend online belum dikonfigurasi pada aplikasi ini.");return;
-  }
   const identity=document.getElementById("loginIdentity").value.trim().toLowerCase();
   const password=document.getElementById("loginPassword").value;
-  if(!identity.includes("@")){showAuthError("Gunakan email untuk login online.");return}
-  const {data,error}=await cloudClient.auth.signInWithPassword({email:identity,password});
-  if(error){showAuthError(error.message);return}
-  cloudUser=data.user;
+  if(!identity||!password){showAuthError("Masukkan email dan password.");return}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identity)){showAuthError("Masukkan email yang valid.");return}
+
+  // ONLINE: jika Supabase tersedia, login menggunakan Auth.
+  if(cloudIsReady()){
+    const {data,error}=await cloudClient.auth.signInWithPassword({email:identity,password});
+    if(error){
+      const msg=String(error.message||"");
+      const low=msg.toLowerCase();
+      if(low.includes("email not confirmed")){
+        showAuthError("Email belum diverifikasi. Cek kotak masuk email Anda, lalu coba login lagi.");
+      }else if(low.includes("invalid login credentials")){
+        showAuthError("Email atau password salah.");
+      }else{
+        showAuthError(msg||"Login gagal. Coba lagi.");
+      }
+      return;
+    }
+    cloudUser=data?.user||null;
+    if(!cloudUser){showAuthError("Sesi login tidak ditemukan. Silakan coba lagi.");return}
+    localStorage.setItem("suapuaLoggedIn","1");
+    await loadCloudProfile();
+    await ensureCloudProfile(getUserName());
+    setCloudStatus(true);applyUserName();
+    document.getElementById("authScreen").classList.remove("show");
+    await loadCloudReports();subscribeRealtime();nav("home");
+    showToast("Berhasil masuk ke akun online.");
+    return;
+  }
+
+  // LOKAL: login demo untuk file HTML yang belum diberi kredensial Supabase.
+  const acc=getAccount();
+  if(!acc){showAuthError("Belum ada akun di perangkat ini. Silakan daftar terlebih dahulu.");return}
+  if(identity!==String(acc.identity||"").toLowerCase()||password!==String(acc.password||"")){
+    showAuthError("Email atau password tidak sesuai.");return;
+  }
   localStorage.setItem("suapuaLoggedIn","1");
-  await loadCloudProfile();setCloudStatus(true);applyUserName();
+  localStorage.setItem("suapuaUserName",acc.name||"Pengguna");
+  applyUserName();
   document.getElementById("authScreen").classList.remove("show");
-  await loadCloudReports();subscribeRealtime();nav("home");
-  showToast("Berhasil masuk ke akun online.");
+  nav("home");
+  showToast("Berhasil masuk ke akun demo.");
 }
 
 async function doLogout(){
@@ -2641,15 +2694,29 @@ async function loadCloudAfterLogin(){
 window.addEventListener("DOMContentLoaded",async()=>{
   if(SUAPUA_CLOUD_CONFIGURED){
     await initCloud();
-    const {data}=await cloudClient.auth.getSession();
-    cloudUser=data?.session?.user||null;
-    if(cloudUser){
-      document.getElementById("splash").style.display="none";
-      document.getElementById("authScreen").classList.remove("show");
-      await loadCloudAfterLogin();
+    if(cloudClient){
+      cloudClient.auth.onAuthStateChange(async(_event,session)=>{
+        cloudUser=session?.user||null;
+        if(cloudUser){
+          localStorage.setItem("suapuaLoggedIn","1");
+          await loadCloudAfterLogin();
+          document.getElementById("splash").style.display="none";
+          document.getElementById("authScreen").classList.remove("show");
+        }else{
+          localStorage.removeItem("suapuaLoggedIn");
+          setCloudStatus(false);
+        }
+      });
     }
   }else{
     setCloudStatus(false);
+    // Mode lokal: pulihkan sesi demo yang masih tersimpan di browser.
+    if(localStorage.getItem("suapuaLoggedIn")==="1" && getAccount()){
+      document.getElementById("splash").style.display="none";
+      document.getElementById("authScreen").classList.remove("show");
+      applyUserName();
+      nav("home");
+    }
   }
   initRealMap();
 });
