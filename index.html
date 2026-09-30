@@ -1013,6 +1013,222 @@ textarea {
     margin-bottom: 10px;
 }
 
+
+/* =========================================================
+   AUTH + ACCOUNT + SETTINGS + NOTIFICATION SYSTEM
+========================================================= */
+.auth-screen{
+  position:fixed;inset:0;z-index:4000;
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+  background:
+    radial-gradient(circle at 15% 10%,rgba(255,255,255,.22),transparent 25%),
+    linear-gradient(145deg,#062f36,#075b4a 55%,#087f5b);
+}
+.auth-screen.show{display:flex}
+.auth-panel{
+  width:min(470px,100%);
+  background:#fff;
+  border-radius:24px;
+  box-shadow:0 30px 90px rgba(0,0,0,.25);
+  overflow:hidden;
+}
+.auth-head{
+  padding:28px 28px 20px;
+  text-align:center;
+}
+.auth-logo{
+  width:64px;height:64px;border-radius:18px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 14px;
+  background:#e8f6f0;color:#087f5b;
+  font-size:28px;font-weight:900;
+}
+.auth-head h2{font-size:22px;color:#102a2d}
+.auth-head p{font-size:12px;color:#7a8b8e;margin-top:6px;line-height:1.6}
+.auth-tabs{
+  display:grid;grid-template-columns:1fr 1fr;
+  padding:0 28px;border-bottom:1px solid #edf1f0;
+}
+.auth-tab{
+  border:0;background:none;padding:12px 6px;
+  color:#829294;font-weight:800;font-size:12px;
+  border-bottom:2px solid transparent;
+}
+.auth-tab.active{color:#087f5b;border-color:#087f5b}
+.auth-body{padding:22px 28px 28px}
+.auth-form{display:none}.auth-form.active{display:block}
+.auth-field{margin-bottom:14px}
+.auth-field label{margin-bottom:7px}
+.auth-field small{display:block;color:#98a5a7;font-size:10px;margin-top:5px}
+.password-wrap{position:relative}
+.password-wrap input{padding-right:70px}
+.password-toggle{
+  position:absolute;right:7px;top:6px;
+  border:0;background:#f1f6f4;color:#4e686b;
+  border-radius:8px;padding:7px 9px;font-size:10px;font-weight:800;
+}
+.auth-actions{display:grid;gap:8px;margin-top:16px}
+.auth-note{
+  padding:10px 12px;border-radius:10px;
+  background:#f5f9f7;color:#667b7e;font-size:10px;line-height:1.5;
+  margin-top:12px;
+}
+.auth-error{
+  display:none;padding:10px 12px;border-radius:10px;
+  background:#fff0f0;color:#c84d4d;font-size:11px;margin-bottom:12px;
+}
+.auth-error.show{display:block}
+
+.account-menu{
+  position:fixed;right:22px;top:64px;z-index:300;
+  width:250px;background:#fff;border:1px solid #e1eae7;
+  border-radius:15px;box-shadow:0 18px 45px rgba(16,42,45,.14);
+  padding:8px;display:none;
+}
+.account-menu.show{display:block}
+.account-head{
+  padding:10px 11px;border-bottom:1px solid #edf1f0;
+  margin-bottom:5px;
+}
+.account-head strong{display:block;font-size:12px;color:#102a2d}
+.account-head span{display:block;font-size:10px;color:#879799;margin-top:3px}
+.account-item{
+  width:100%;border:0;background:#fff;text-align:left;
+  padding:10px 11px;border-radius:9px;
+  color:#506669;font-size:11px;font-weight:700;
+  display:flex;align-items:center;gap:9px;
+}
+.account-item:hover{background:#f2f8f5;color:#087f5b}
+.account-item.danger{color:#c84d4d}
+.account-item.danger:hover{background:#fff2f2;color:#b33d3d}
+
+.notification-panel{
+  position:fixed;right:22px;top:64px;z-index:290;
+  width:340px;max-width:calc(100vw - 30px);
+  background:#fff;border:1px solid #e1eae7;border-radius:15px;
+  box-shadow:0 18px 45px rgba(16,42,45,.14);
+  display:none;overflow:hidden;
+}
+.notification-panel.show{display:block}
+.notification-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 15px;border-bottom:1px solid #edf1f0;
+}
+.notification-head strong{font-size:13px;color:#102a2d}
+.notification-list{max-height:330px;overflow:auto}
+.notification-item{
+  display:flex;gap:10px;padding:12px 15px;
+  border-bottom:1px solid #f0f3f2;
+}
+.notification-item:last-child{border-bottom:0}
+.notification-item.unread{background:#f6fbf9}
+.notification-dot{
+  width:30px;height:30px;flex:0 0 30px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  background:#e8f6f0;color:#087f5b;font-size:13px;
+}
+.notification-item strong{display:block;font-size:11px;color:#243e42}
+.notification-item span{display:block;font-size:10px;color:#849497;line-height:1.5;margin-top:3px}
+.notification-empty{padding:28px 15px;text-align:center;color:#879799;font-size:11px}
+
+.settings-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+.settings-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;padding:14px 0;border-bottom:1px solid #eef2f1;
+}
+.settings-row:last-child{border-bottom:0}
+.settings-row strong{display:block;font-size:12px;color:#243e42}
+.settings-row span{display:block;font-size:10px;color:#89989a;margin-top:3px;line-height:1.5}
+.switch{
+  position:relative;width:42px;height:24px;flex:0 0 42px;
+}
+.switch input{opacity:0;width:0;height:0}
+.switch-slider{
+  position:absolute;inset:0;border-radius:30px;background:#dbe5e2;
+  cursor:pointer;transition:.2s;
+}
+.switch-slider:before{
+  content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;
+  border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.2s;
+}
+.switch input:checked + .switch-slider{background:#087f5b}
+.switch input:checked + .switch-slider:before{transform:translateX(18px)}
+
+.security-card{
+  border:1px solid #e1eae7;border-radius:14px;padding:15px;
+  background:linear-gradient(145deg,#f9fcfb,#f1f8f5);
+}
+.security-status{
+  display:flex;align-items:center;gap:9px;margin-bottom:12px;
+}
+.security-status .ok{
+  width:32px;height:32px;border-radius:10px;background:#dff3e9;color:#087f5b;
+  display:flex;align-items:center;justify-content:center;font-weight:900;
+}
+.security-card h4{font-size:12px;color:#213d40}
+.security-card p{font-size:10px;color:#7b8d90;line-height:1.5;margin-top:2px}
+.profile-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.profile-meta{
+  padding:12px;border:1px solid #e5ecea;border-radius:11px;background:#fbfdfc;
+}
+.profile-meta small{display:block;font-size:9px;color:#91a0a2;text-transform:uppercase;font-weight:800;letter-spacing:.06em}
+.profile-meta strong{display:block;font-size:11px;color:#334d50;margin-top:4px}
+.inline-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+.confirm-overlay{
+  position:fixed;inset:0;z-index:4500;
+  display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(9,35,38,.48);backdrop-filter:blur(3px);
+}
+.confirm-overlay.show{display:flex}
+.confirm-box{
+  width:min(390px,100%);background:#fff;border-radius:18px;
+  padding:22px;box-shadow:0 25px 80px rgba(0,0,0,.22);
+}
+.confirm-box h3{font-size:16px;color:#102a2d}
+.confirm-box p{font-size:11px;color:#7b8d90;line-height:1.6;margin:7px 0 16px}
+.confirm-actions{display:flex;justify-content:flex-end;gap:8px}
+
+.badge-count{
+  position:absolute;right:-3px;top:-4px;
+  min-width:15px;height:15px;padding:0 4px;border-radius:99px;
+  background:#dc5a5a;color:#fff;font-size:8px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+}
+.notification-wrap{position:relative}
+
+.history-toolbar{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:10px;flex-wrap:wrap;margin-bottom:15px;
+}
+.history-filter{display:flex;gap:7px;flex-wrap:wrap}
+.history-filter button{
+  border:1px solid #dfe8e5;background:#fff;color:#718083;
+  border-radius:999px;padding:7px 11px;font-size:10px;font-weight:800;
+}
+.history-filter button.active{background:#e8f6f0;color:#087f5b;border-color:#bfe0d2}
+
+@media(max-width:800px){
+  .account-menu{right:12px;top:58px}
+  .notification-panel{right:10px;top:58px}
+  .settings-grid{grid-template-columns:1fr}
+  .profile-meta-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .auth-panel{border-radius:20px}
+  .auth-head{padding:24px 20px 18px}
+  .auth-tabs{padding:0 20px}
+  .auth-body{padding:18px 20px 22px}
+  .profile-meta-grid{grid-template-columns:1fr}
+}
+
+
+body.compact-mode .card-body{padding:14px}
+body.compact-mode .card-header{padding:13px 15px}
+body.compact-mode .activity{padding:10px 0}
+body.compact-mode .stat-card{padding:14px}
+
 /* =========================================================
    RESPONSIVE
 ========================================================= */
@@ -1487,6 +1703,66 @@ label{color:#244044}
   </div>
 </div>
 
+
+<!-- AUTHENTICATION -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-panel">
+    <div class="auth-head">
+      <div class="auth-logo">S</div>
+      <h2 id="authTitle">Masuk ke SUAPUA</h2>
+      <p id="authSubtitle">Kelola laporan, pantau status, dan gunakan layanan masyarakat dalam satu akun.</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="loginTab" onclick="switchAuth('login')">Masuk</button>
+      <button class="auth-tab" id="registerTab" onclick="switchAuth('register')">Daftar</button>
+    </div>
+    <div class="auth-body">
+      <div id="authError" class="auth-error"></div>
+
+      <div class="auth-form active" id="loginForm">
+        <div class="auth-field"><label>Email / Nomor HP</label><input id="loginIdentity" placeholder="contoh@email.com atau 0812..."></div>
+        <div class="auth-field"><label>Password</label><div class="password-wrap"><input id="loginPassword" type="password" placeholder="Masukkan password"><button class="password-toggle" onclick="togglePassword('loginPassword',this)">Lihat</button></div></div>
+        <div class="auth-actions">
+          <button class="btn btn-primary" onclick="doLogin()">Masuk ke Akun</button>
+          <button class="btn" style="background:#f1f5f3;color:#526a6d" onclick="continueGuest()">Lanjut sebagai tamu</button>
+        </div>
+        <div class="auth-note">Demo prototipe: akun disimpan secara lokal di browser ini. Jangan gunakan password asli untuk demo.</div>
+      </div>
+
+      <div class="auth-form" id="registerForm">
+        <div class="auth-field"><label>Nama Lengkap *</label><input id="regName" placeholder="Nama Anda"></div>
+        <div class="auth-field"><label>Email / Nomor HP *</label><input id="regIdentity" placeholder="Email atau nomor HP"></div>
+        <div class="auth-field"><label>Password *</label><div class="password-wrap"><input id="regPassword" type="password" placeholder="Minimal 6 karakter"><button class="password-toggle" onclick="togglePassword('regPassword',this)">Lihat</button></div><small>Password demo disimpan lokal pada perangkat.</small></div>
+        <div class="auth-actions"><button class="btn btn-primary" onclick="doRegister()">Buat Akun</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACCOUNT MENU -->
+<div class="account-menu" id="accountMenu">
+  <div class="account-head"><strong id="accountMenuName">Pengguna</strong><span id="accountMenuIdentity">Belum login</span></div>
+  <button class="account-item" onclick="closeOverlays();nav('profile')">◉ &nbsp; Profil Saya</button>
+  <button class="account-item" onclick="closeOverlays();nav('history')">▤ &nbsp; Riwayat Laporan</button>
+  <button class="account-item" onclick="closeOverlays();nav('settings')">⚙ &nbsp; Pengaturan</button>
+  <button class="account-item danger" onclick="closeOverlays();confirmLogout()">↪ &nbsp; Keluar</button>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="notification-panel" id="notificationPanel">
+  <div class="notification-head"><strong>Notifikasi</strong><button class="btn" style="padding:5px 8px;background:#e8f6f0;color:#087f5b;font-size:9px" onclick="markNotificationsRead()">Tandai dibaca</button></div>
+  <div class="notification-list" id="notificationList"></div>
+</div>
+
+<!-- CONFIRM LOGOUT -->
+<div class="confirm-overlay" id="logoutConfirm">
+  <div class="confirm-box">
+    <h3>Keluar dari akun?</h3>
+    <p>Sesi akun pada perangkat ini akan ditutup. Data laporan lokal tetap tersimpan di browser.</p>
+    <div class="confirm-actions"><button class="btn" style="background:#f1f5f3;color:#526a6d" onclick="closeLogoutConfirm()">Batal</button><button class="btn" style="background:#fff0f0;color:#c84d4d" onclick="doLogout()">Ya, Keluar</button></div>
+  </div>
+</div>
+
 <div class="app">
 <aside class="sidebar" id="sidebar">
   <div class="brand"><div class="brand-icon">S</div><div class="brand-text">Sua<span>PUA</span></div></div>
@@ -1495,11 +1771,14 @@ label{color:#244044}
     <a href="#" class="menu-item active" onclick="nav('home',this)"><span class="menu-icon">⌂</span>Beranda</a>
     <a href="#" class="menu-item" onclick="nav('report',this)"><span class="menu-icon">＋</span>Laporkan Keluhan</a>
     <a href="#" class="menu-item" onclick="nav('status',this)"><span class="menu-icon">⌕</span>Cek Status</a>
+    <a href="#" class="menu-item" onclick="nav('history',this)"><span class="menu-icon">▤</span>Riwayat Laporan</a>
     <div class="menu-title">Informasi</div>
     <a href="#" class="menu-item" onclick="nav('info',this)"><span class="menu-icon">ⓘ</span>Informasi Program</a>
     <a href="#" class="menu-item" onclick="nav('help',this)"><span class="menu-icon">?</span>Kontak & Bantuan</a>
     <div class="menu-title">Akun</div>
     <a href="#" class="menu-item" onclick="nav('profile',this)"><span class="menu-icon">◉</span>Profil</a>
+    <a href="#" class="menu-item" onclick="nav('settings',this)"><span class="menu-icon">⚙</span>Pengaturan</a>
+    <a href="#" class="menu-item" onclick="confirmLogout()"><span class="menu-icon">↪</span>Keluar</a>
   </div>
   <div class="sidebar-footer"><div class="profile-mini"><div class="avatar" id="sidebarAvatar">U</div><div class="profile-info"><strong id="sidebarName">Pengguna</strong><span>Masyarakat</span></div></div></div>
 </aside>
@@ -1510,7 +1789,10 @@ label{color:#244044}
     <button class="mobile-menu" onclick="toggleSidebar()">☰</button>
     <div class="page-title"><h1 id="pageTitle">Beranda</h1><p>Suara Aspirasi Masyarakat Papua</p></div>
   </div>
-  <div class="topbar-right"><button class="notification" onclick="showToast('Tidak ada notifikasi baru')">🔔</button><div class="avatar" id="topAvatar">U</div></div>
+  <div class="topbar-right">
+    <div class="notification-wrap"><button class="notification" onclick="toggleNotifications()">🔔<span class="badge-count" id="notificationBadge">0</span></button></div>
+    <button class="avatar" id="topAvatar" style="border:0" onclick="toggleAccountMenu()">U</button>
+  </div>
 </header>
 
 <section class="content">
@@ -1538,6 +1820,26 @@ label{color:#244044}
     <div class="card"><div class="card-header"><div><h3>Aktivitas Terakhir</h3><span>Pembaruan sistem</span></div></div><div class="card-body" id="activityList"></div></div>
   </div>
   <div class="card"><div class="card-header"><div><h3>Informasi SUAPUA</h3><span>Layanan aspirasi masyarakat Papua</span></div></div><div class="card-body"><p style="font-size:13px;line-height:1.7;color:#64748b">Gunakan SUAPUA untuk menyampaikan keluhan masyarakat, melengkapi bukti, menentukan lokasi kejadian, dan memantau status laporan hingga selesai.</p></div></div>
+</div>
+
+
+<!-- REPORT HISTORY -->
+<div id="historyScreen" class="screen">
+  <div class="card">
+    <div class="card-header"><div><h3>Riwayat Laporan</h3><span>Semua laporan yang tersimpan di akun ini</span></div></div>
+    <div class="card-body">
+      <div class="history-toolbar">
+        <div class="search-box" style="max-width:360px"><span class="search-icon">⌕</span><input id="historySearch" placeholder="Cari nomor atau judul..." oninput="renderHistory()"></div>
+        <div class="history-filter">
+          <button class="active" onclick="setHistoryFilter('Semua',this)">Semua</button>
+          <button onclick="setHistoryFilter('Baru',this)">Baru</button>
+          <button onclick="setHistoryFilter('Diproses',this)">Diproses</button>
+          <button onclick="setHistoryFilter('Selesai',this)">Selesai</button>
+        </div>
+      </div>
+      <div class="table-wrapper"><table><thead><tr><th>Nomor</th><th>Laporan</th><th>Lokasi</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="historyTable"></tbody></table></div>
+    </div>
+  </div>
 </div>
 
 <!-- REPORT WIZARD -->
@@ -1604,9 +1906,48 @@ label{color:#244044}
 <!-- PROFILE -->
 <div id="profileScreen" class="screen">
   <div class="card"><div class="card-header"><div><h3>Profil</h3><span>Akun pengguna SUAPUA</span></div></div><div class="card-body">
-    <div class="profile-card"><div class="profile-large" id="profileAvatar">U</div><div><strong id="profileName" style="font-size:15px;color:#111827">Pengguna</strong><div style="font-size:12px;color:#6b7280;margin-top:3px">Masyarakat • Papua</div></div></div>
-    <div style="margin-top:18px"><button class="btn btn-primary" onclick="openAdminLogin()">Mode Admin / Login Petugas</button></div>
+    <div class="profile-card"><div class="profile-large" id="profileAvatar">U</div><div style="min-width:0"><strong id="profileName" style="font-size:15px;color:#102a2d">Pengguna</strong><div style="font-size:11px;color:#7b8d90;margin-top:3px">Masyarakat • Papua</div><div class="profile-meta-grid"><div class="profile-meta"><small>Identitas</small><strong id="profileIdentity">Tamu</strong></div><div class="profile-meta"><small>Status</small><strong style="color:#087f5b">Aktif</strong></div></div></div></div>
+    <div class="inline-actions"><button class="btn btn-primary" onclick="openEditProfile()">Edit Profil</button><button class="btn" style="background:#e8f6f0;color:#087f5b" onclick="nav('history')">Riwayat Laporan</button><button class="btn" style="background:#f1f5f3;color:#526a6d" onclick="openAdminLogin()">Mode Petugas</button></div>
   </div></div>
+</div>
+
+<!-- ACCOUNT SETTINGS -->
+<div id="settingsScreen" class="screen">
+  <div class="settings-grid">
+    <div class="card">
+      <div class="card-header"><div><h3>Pengaturan Akun</h3><span>Kelola preferensi dan data akun</span></div></div>
+      <div class="card-body">
+        <div class="settings-row">
+          <div><strong>Notifikasi laporan</strong><span>Terima pembaruan saat status laporan berubah.</span></div>
+          <label class="switch"><input id="settingNotif" type="checkbox" checked onchange="saveSettings()"><span class="switch-slider"></span></label>
+        </div>
+        <div class="settings-row">
+          <div><strong>Notifikasi informasi</strong><span>Terima informasi program dan pengumuman SUAPUA.</span></div>
+          <label class="switch"><input id="settingInfo" type="checkbox" checked onchange="saveSettings()"><span class="switch-slider"></span></label>
+        </div>
+        <div class="settings-row">
+          <div><strong>Mode ringkas</strong><span>Kurangi detail visual pada kartu agar lebih padat.</span></div>
+          <label class="switch"><input id="settingCompact" type="checkbox" onchange="saveSettings()"><span class="switch-slider"></span></label>
+        </div>
+        <div class="inline-actions">
+          <button class="btn btn-primary" onclick="openEditProfile()">Edit Profil</button>
+          <button class="btn" style="background:#f1f5f3;color:#526a6d" onclick="openChangePassword()">Ubah Password</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><h3>Keamanan Akun</h3><span>Status sesi dan perlindungan akun</span></div></div>
+      <div class="card-body">
+        <div class="security-card">
+          <div class="security-status"><div class="ok">✓</div><div><h4>Sesi aktif</h4><p>Perangkat ini sedang masuk ke akun SUAPUA.</p></div></div>
+          <div class="detail-row"><div class="detail-label">Pengguna</div><div class="detail-value" id="securityUser">-</div></div>
+          <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value" style="color:#087f5b">Terverifikasi lokal</div></div>
+          <div class="detail-row"><div class="detail-label">Penyimpanan</div><div class="detail-value">Perangkat ini</div></div>
+        </div>
+        <button class="btn" style="margin-top:12px;background:#fff0f0;color:#c84d4d;width:100%" onclick="confirmLogout()">Keluar dari akun</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ADMIN LOGIN -->
@@ -1645,17 +1986,27 @@ let currentReportStep=1, currentTicket="", lastSubmitted=null;
 function getUserName(){
   return (localStorage.getItem("suapuaUserName")||"").trim() || "Pengguna";
 }
+function getAccount(){
+  try{return JSON.parse(localStorage.getItem("suapuaAccount")||"null")}catch(e){return null}
+}
+function isLoggedIn(){return localStorage.getItem("suapuaLoggedIn")==="1"}
 function initials(name){
   return name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase() || "U";
 }
 function applyUserName(){
-  const name=getUserName(), ini=initials(name);
+  const name=getUserName(), ini=initials(name), account=getAccount();
   ["sidebarName","profileName","welcomeName"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerText=name;
   });
   ["sidebarAvatar","topAvatar","profileAvatar"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerText=ini;
   });
+  const identity=(account&&account.identity)||"Tamu";
+  const ids=["accountMenuName","securityUser"];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.innerText=name});
+  const am=document.getElementById("accountMenuIdentity");if(am)am.innerText=identity;
+  const pi=document.getElementById("profileIdentity");if(pi)pi.innerText=identity;
+  const badge=document.getElementById("notificationBadge");if(badge)badge.innerText=getUnreadCount();
 }
 function enterApp(){
   const input=document.getElementById("visitorName");
@@ -1664,30 +2015,125 @@ function enterApp(){
   localStorage.setItem("suapuaUserName",value);
   applyUserName();
   document.getElementById("splash").style.display="none";
-  nav("home");
+  if(isLoggedIn()) nav("home"); else openAuth();
 }
-window.addEventListener("DOMContentLoaded",()=>{
-  const saved=getUserName();
-  const input=document.getElementById("visitorName");
-  if(input && saved!=="Pengguna") input.value=saved;
+function continueGuest(){
+  const name=(document.getElementById("visitorName")?.value||"").trim();
+  if(name) localStorage.setItem("suapuaUserName",name);
+  document.getElementById("authScreen").classList.remove("show");
+  document.getElementById("splash").style.display="none";
+  applyUserName();nav("home");
+  showToast("Mode tamu aktif. Anda bisa login kapan saja dari menu akun.");
+}
+function openAuth(tab="login"){
+  document.getElementById("splash").style.display="none";
+  document.getElementById("authScreen").classList.add("show");
+  switchAuth(tab);
+}
+function switchAuth(mode){
+  const login=mode==="login";
+  document.getElementById("loginTab").classList.toggle("active",login);
+  document.getElementById("registerTab").classList.toggle("active",!login);
+  document.getElementById("loginForm").classList.toggle("active",login);
+  document.getElementById("registerForm").classList.toggle("active",!login);
+  document.getElementById("authTitle").innerText=login?"Masuk ke SUAPUA":"Buat Akun SUAPUA";
+  document.getElementById("authSubtitle").innerText=login?"Kelola laporan, pantau status, dan gunakan layanan masyarakat dalam satu akun.":"Buat akun untuk menyimpan profil dan mengelola laporan pada perangkat ini.";
+  hideAuthError();
+}
+function showAuthError(msg){
+  const e=document.getElementById("authError");e.innerText=msg;e.classList.add("show");
+}
+function hideAuthError(){document.getElementById("authError").classList.remove("show")}
+function doRegister(){
+  const name=document.getElementById("regName").value.trim();
+  const identity=document.getElementById("regIdentity").value.trim().toLowerCase();
+  const password=document.getElementById("regPassword").value;
+  if(!name||!identity||password.length<6){showAuthError("Lengkapi nama, identitas, dan password minimal 6 karakter.");return}
+  localStorage.setItem("suapuaAccount",JSON.stringify({name,identity,password}));
+  localStorage.setItem("suapuaUserName",name);
+  localStorage.setItem("suapuaLoggedIn","1");
   applyUserName();
-  if(saved!=="Pengguna") document.getElementById("splash").style.display="none";
+  document.getElementById("authScreen").classList.remove("show");
+  nav("home");showToast("Akun berhasil dibuat dan Anda sudah masuk.");
+}
+function doLogin(){
+  const identity=document.getElementById("loginIdentity").value.trim().toLowerCase();
+  const password=document.getElementById("loginPassword").value;
+  const acc=getAccount();
+  if(!acc){showAuthError("Belum ada akun lokal. Silakan daftar terlebih dahulu.");return}
+  if(identity!==String(acc.identity).toLowerCase() || password!==acc.password){showAuthError("Identitas atau password tidak sesuai.");return}
+  localStorage.setItem("suapuaLoggedIn","1");
+  localStorage.setItem("suapuaUserName",acc.name);
+  applyUserName();
+  document.getElementById("authScreen").classList.remove("show");
+  nav("home");showToast("Selamat datang kembali, "+acc.name+".");
+}
+function togglePassword(id,btn){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.type=el.type==="password"?"text":"password";
+  btn.innerText=el.type==="password"?"Lihat":"Sembunyikan";
+}
+function confirmLogout(){closeOverlays();document.getElementById("logoutConfirm").classList.add("show")}
+function closeLogoutConfirm(){document.getElementById("logoutConfirm").classList.remove("show")}
+function doLogout(){
+  localStorage.removeItem("suapuaLoggedIn");
+  closeLogoutConfirm();
+  closeOverlays();
+  document.getElementById("authScreen").classList.add("show");
+  switchAuth("login");
+  showToast("Anda telah keluar dari akun.");
+}
+function openEditProfile(){
+  const acc=getAccount(),name=prompt("Nama lengkap:",getUserName());
+  if(name===null)return;
+  const clean=name.trim();if(!clean){showToast("Nama tidak boleh kosong.");return}
+  localStorage.setItem("suapuaUserName",clean);
+  if(acc){acc.name=clean;localStorage.setItem("suapuaAccount",JSON.stringify(acc))}
+  applyUserName();showToast("Profil berhasil diperbarui.");
+}
+function openChangePassword(){
+  const acc=getAccount();
+  if(!acc){showToast("Login terlebih dahulu untuk mengubah password.");return}
+  const oldP=prompt("Masukkan password lama:");
+  if(oldP===null)return;
+  if(oldP!==acc.password){showToast("Password lama tidak sesuai.");return}
+  const newP=prompt("Masukkan password baru (minimal 6 karakter):");
+  if(newP===null)return;
+  if(newP.length<6){showToast("Password baru minimal 6 karakter.");return}
+  acc.password=newP;localStorage.setItem("suapuaAccount",JSON.stringify(acc));
+  showToast("Password berhasil diubah.");
+}
+function toggleAccountMenu(){
+  closeNotification();
+  document.getElementById("accountMenu").classList.toggle("show");
+}
+function toggleNotifications(){
+  closeAccountMenu();
+  document.getElementById("notificationPanel").classList.toggle("show");
+  renderNotifications();
+}
+function closeAccountMenu(){document.getElementById("accountMenu").classList.remove("show")}
+function closeNotification(){document.getElementById("notificationPanel").classList.remove("show")}
+function closeOverlays(){closeAccountMenu();closeNotification();closeLogoutConfirm()}
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".account-menu")&&!e.target.closest("#topAvatar"))closeAccountMenu();
+  if(!e.target.closest(".notification-panel")&&!e.target.closest(".notification"))closeNotification();
 });
-setTimeout(()=>{
-  if(getUserName()!=="Pengguna") document.getElementById("splash").style.display="none";
-},3500);
 
-function screenIds(){return ["home","report","submitted","status","info","help","profile","adminLogin","admin"];}
+function screenIds(){return ["home","report","submitted","status","info","help","profile","settings","history","adminLogin","admin"];}
 function nav(name,el){
   screenIds().forEach(x=>{let e=document.getElementById(x+"Screen");if(e)e.classList.remove("active")});
   let target=document.getElementById(name+"Screen");if(target)target.classList.add("active");
-  const titles={home:"Beranda",report:"Laporkan Keluhan",submitted:"Laporan Terkirim",status:"Cek Status Laporan",info:"Informasi Program",help:"Kontak & Bantuan",profile:"Profil",adminLogin:"Login Petugas",admin:"Dashboard Admin"};
+  const titles={home:"Beranda",report:"Laporkan Keluhan",submitted:"Laporan Terkirim",status:"Cek Status Laporan",info:"Informasi Program",help:"Kontak & Bantuan",profile:"Profil",settings:"Pengaturan",history:"Riwayat Laporan",adminLogin:"Login Petugas",admin:"Dashboard Admin"};
   document.getElementById("pageTitle").innerText=titles[name]||"SUAPUA";
   document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
   if(el)el.classList.add("active");
   if(name==="status") renderStatusHint();
   if(name==="admin") renderAdmin();
   if(name==="home") renderHome();
+  if(name==="history") renderHistory();
+  if(name==="settings") renderSettings();
   document.getElementById("sidebar").classList.remove("open");
 }
 function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
@@ -1753,14 +2199,78 @@ function renderAdmin(){
  document.getElementById("adminProcess").innerText=reports.filter(r=>r.status==="Diproses").length;
  document.getElementById("adminDone").innerText=reports.filter(r=>r.status==="Selesai").length;
 }
-function changeStatus(id,status){if(!status)return;const r=reports.find(x=>x.id===id);if(!r)return;r.status=status;localStorage.setItem("suapuaReports",JSON.stringify(reports));renderAdmin();showToast(id+" diubah menjadi "+status);if(id===currentTicket)checkStatus();}
+function changeStatus(id,status){if(!status)return;const r=reports.find(x=>x.id===id);if(!r)return;r.status=status;localStorage.setItem("suapuaReports",JSON.stringify(reports));renderAdmin();renderNotifications();renderHistory();showToast(id+" diubah menjadi "+status);if(id===currentTicket)checkStatus();}
 function getStatusClass(s){return s==="Baru"?"status-new":s==="Diproses"?"status-process":s==="Selesai"?"status-done":"status-reject";}
 function showDetail(id){const r=reports.find(x=>x.id===id);if(!r)return;document.getElementById("modalTitle").innerText="Detail Laporan";document.getElementById("detailContent").innerHTML=`<div class="detail-row"><div class="detail-label">Nomor Tiket</div><div class="detail-value" style="color:#087f5b">${r.id}</div></div><div class="detail-row"><div class="detail-label">Pelapor</div><div class="detail-value">${r.reporter||getUserName()}</div></div><div class="detail-row"><div class="detail-label">Judul</div><div class="detail-value">${r.title}</div></div><div class="detail-row"><div class="detail-label">Kategori</div><div class="detail-value">${r.category}</div></div><div class="detail-row"><div class="detail-label">Lokasi</div><div class="detail-value">${r.location}</div></div><div class="detail-row"><div class="detail-label">Tanggal</div><div class="detail-value">${formatDate(r.date)}</div></div><div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="status ${getStatusClass(r.status)}">${r.status}</span></div></div><div class="detail-row"><div class="detail-label">Isi</div><div class="detail-value" style="font-weight:500;line-height:1.7">${r.description}</div></div>`;document.getElementById("detailModal").classList.add("show");}
 function closeModal(){document.getElementById("detailModal").classList.remove("show");}
 document.getElementById("detailModal").addEventListener("click",e=>{if(e.target===document.getElementById("detailModal"))closeModal();});
 function showToast(msg){const t=document.getElementById("toast");t.innerText=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3200);}
+
+let historyFilter="Semua";
+function setHistoryFilter(filter,btn){
+  historyFilter=filter;
+  document.querySelectorAll(".history-filter button").forEach(b=>b.classList.remove("active"));
+  if(btn)btn.classList.add("active");
+  renderHistory();
+}
+function renderHistory(){
+  const q=(document.getElementById("historySearch")?.value||"").toLowerCase().trim();
+  const list=reports.filter(r=>{
+    const own=!r.reporter || r.reporter===getUserName();
+    const statusOk=historyFilter==="Semua"||r.status===historyFilter;
+    const text=(r.id+" "+r.title+" "+r.location).toLowerCase();
+    return own&&statusOk&&(!q||text.includes(q));
+  });
+  const tb=document.getElementById("historyTable");if(!tb)return;
+  tb.innerHTML=list.length?list.map(r=>`<tr>
+    <td><span class="ticket">${r.id}</span></td>
+    <td><div class="report-title">${r.title}</div><div class="report-category">${r.category}</div></td>
+    <td>${r.location}</td><td>${formatDate(r.date)}</td>
+    <td><span class="status ${getStatusClass(r.status)}">${r.status}</span></td>
+    <td><button class="btn" style="padding:7px 9px;background:#e8f6f0;color:#087f5b" onclick="showDetail('${r.id}')">Detail</button></td>
+  </tr>`).join(""):`<tr><td colspan="6"><div class="empty"><div class="empty-icon">▤</div>Belum ada laporan pada filter ini.</div></td></tr>`;
+}
+function renderSettings(){
+  const s=JSON.parse(localStorage.getItem("suapuaSettings")||"{}");
+  const a=document.getElementById("settingNotif"),b=document.getElementById("settingInfo"),c=document.getElementById("settingCompact");
+  if(a)a.checked=s.notif!==false;if(b)b.checked=s.info!==false;if(c)c.checked=s.compact===true;
+  applyCompact();
+  const u=document.getElementById("securityUser");if(u)u.innerText=getUserName();
+}
+function saveSettings(){
+  localStorage.setItem("suapuaSettings",JSON.stringify({
+    notif:document.getElementById("settingNotif")?.checked!==false,
+    info:document.getElementById("settingInfo")?.checked!==false,
+    compact:document.getElementById("settingCompact")?.checked===true
+  }));
+  applyCompact();showToast("Pengaturan disimpan.");
+}
+function applyCompact(){
+  const s=JSON.parse(localStorage.getItem("suapuaSettings")||"{}");
+  document.body.classList.toggle("compact-mode",s.compact===true);
+}
+function getNotifications(){
+  const result=[];
+  reports.slice(0,5).forEach(r=>{
+    result.push({id:"report-"+r.id,title:"Pembaruan laporan",text:r.id+" sekarang berstatus "+r.status+" • "+r.title,unread:r.status!=="Selesai",seen:r._seen===true});
+  });
+  if(!result.length)result.push({id:"welcome",title:"Selamat datang di SUAPUA",text:"Mulai dengan membuat laporan atau melihat informasi program.",unread:true});
+  return result;
+}
+function getUnreadCount(){return getNotifications().filter(x=>x.unread && !x.seen).length}
+function renderNotifications(){
+  const list=getNotifications(),box=document.getElementById("notificationList");if(!box)return;
+  box.innerHTML=list.map(x=>`<div class="notification-item ${x.unread?"unread":""}">
+    <div class="notification-dot">${x.unread?"!":"✓"}</div><div><strong>${x.title}</strong><span>${x.text}</span></div>
+  </div>`).join("");
+  const badge=document.getElementById("notificationBadge");if(badge)badge.innerText=list.filter(x=>x.unread && !x.seen).length;
+}
+function markNotificationsRead(){
+  reports.forEach(r=>{if(r.status==="Baru"||r.status==="Diproses")r._seen=true});
+  renderNotifications();showToast("Notifikasi ditandai sudah dibaca.");
+}
 function formatDate(d){if(!d)return"-";return new Date(d+"T00:00:00").toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"});}
-applyUserName();filterInfo("Semua");renderHome();updateReportStep();
+applyUserName();renderNotifications();filterInfo("Semua");renderHome();updateReportStep();renderHistory();renderSettings();
 </script>
 
 </body>
