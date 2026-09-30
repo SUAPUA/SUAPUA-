@@ -1691,9 +1691,6 @@ label{color:#244044}
 </style>
 
 <!-- Cloud backend + real map libraries -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 </head>
 <body>
@@ -1732,7 +1729,7 @@ label{color:#244044}
           <button class="btn btn-primary" onclick="doLogin()">Masuk ke Akun</button>
           <button class="btn" style="background:#f1f5f3;color:#526a6d" onclick="continueGuest()">Lanjut sebagai tamu</button>
         </div>
-        <div class="auth-note" id="authModeNote">Akun online memakai Supabase. Jika backend belum dikonfigurasi, login demo lokal tetap bisa digunakan di perangkat ini.</div>
+        <div class="auth-note" id="authModeNote">Login SUAPUA aktif langsung di perangkat ini. Anda dapat membuat banyak akun dan masuk kembali kapan saja pada browser/perangkat yang sama.</div>
       </div>
 
       <div class="auth-form" id="registerForm">
@@ -2061,29 +2058,137 @@ function showAuthError(msg){
   const e=document.getElementById("authError");e.innerText=msg;e.classList.add("show");
 }
 function hideAuthError(){document.getElementById("authError").classList.remove("show")}
+function getAccounts(){
+  try{
+    const raw=JSON.parse(localStorage.getItem("suapuaAccounts")||"[]");
+    return Array.isArray(raw)?raw:[];
+  }catch(e){return []}
+}
+function saveAccounts(list){localStorage.setItem("suapuaAccounts",JSON.stringify(list));}
+function migrateOldAccount(){
+  const old=localStorage.getItem("suapuaAccount");
+  if(!old)return;
+  try{
+    const a=JSON.parse(old);
+    if(a&&a.identity&&a.password){
+      const list=getAccounts();
+      if(!list.some(x=>String(x.identity).toLowerCase()===String(a.identity).toLowerCase())){
+        list.push({name:a.name||"Pengguna SUAPUA",identity:String(a.identity).toLowerCase(),password:String(a.password),createdAt:new Date().toISOString()});
+        saveAccounts(list);
+      }
+    }
+  }catch(e){}
+}
+function seedDemoAccount(){
+  const list=getAccounts();
+  const email="demo@suapua.id";
+  if(!list.some(x=>String(x.identity).toLowerCase()===email)){
+    list.push({name:"Demo SUAPUA",identity:email,password:"suapua123",createdAt:new Date().toISOString()});
+    saveAccounts(list);
+  }
+}
+function getSessionIdentity(){return (localStorage.getItem("suapuaSessionEmail")||"").toLowerCase();}
+function getUserName(){
+  const acc=getAccount();
+  if(acc&&acc.name)return acc.name;
+  return (localStorage.getItem("suapuaUserName")||"").trim()||"Pengguna SUAPUA";
+}
+function getAccount(){
+  const email=getSessionIdentity();
+  if(!email)return null;
+  return getAccounts().find(a=>String(a.identity||"").toLowerCase()===email)||null;
+}
+function isLoggedIn(){return !!getAccount();}
+function applyUserName(){
+  const name=getUserName(), ini=initials(name), account=getAccount();
+  ["sidebarName","profileName","welcomeName"].forEach(id=>{const el=document.getElementById(id);if(el)el.innerText=name});
+  ["sidebarAvatar","topAvatar","profileAvatar"].forEach(id=>{const el=document.getElementById(id);if(el)el.innerText=ini});
+  const identity=account?.identity||"Belum login";
+  ["accountMenuName","securityUser"].forEach(id=>{const el=document.getElementById(id);if(el)el.innerText=name});
+  const am=document.getElementById("accountMenuIdentity");if(am)am.innerText=identity;
+  const pi=document.getElementById("profileIdentity");if(pi)pi.innerText=identity;
+  const badge=document.getElementById("notificationBadge");if(badge)badge.innerText=getUnreadCount();
+}
+function enterApp(){
+  const input=document.getElementById("visitorName");
+  const value=input?(input.value||"").trim():"";
+  if(value)localStorage.setItem("suapuaUserName",value);
+  document.getElementById("splash").style.display="none";
+  if(isLoggedIn()){
+    applyUserName();nav("home");
+  }else{
+    openAuth("login");
+  }
+}
+function continueGuest(){
+  const name=(document.getElementById("visitorName")?.value||"").trim();
+  if(name)localStorage.setItem("suapuaUserName",name);
+  document.getElementById("authScreen").classList.remove("show");
+  document.getElementById("splash").style.display="none";
+  applyUserName();nav("home");
+  showToast("Mode tamu aktif. Login dapat dilakukan kapan saja dari menu akun.");
+}
+function openAuth(tab="login"){
+  document.getElementById("splash").style.display="none";
+  document.getElementById("authScreen").classList.add("show");
+  switchAuth(tab);
+}
+function switchAuth(mode){
+  const login=mode==="login";
+  document.getElementById("loginTab").classList.toggle("active",login);
+  document.getElementById("registerTab").classList.toggle("active",!login);
+  document.getElementById("loginForm").classList.toggle("active",login);
+  document.getElementById("registerForm").classList.toggle("active",!login);
+  document.getElementById("authTitle").innerText=login?"Masuk ke SUAPUA":"Buat Akun SUAPUA";
+  document.getElementById("authSubtitle").innerText=login?"Masuk untuk mengelola laporan dan profil Anda.":"Buat akun SUAPUA dan gunakan langsung di perangkat ini.";
+  hideAuthError();
+}
+function showAuthError(msg){
+  const e=document.getElementById("authError");e.innerText=msg;e.classList.add("show");
+}
+function hideAuthError(){const e=document.getElementById("authError");if(e)e.classList.remove("show")}
+function validEmail(email){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
 function doRegister(){
+  hideAuthError();
   const name=document.getElementById("regName").value.trim();
   const identity=document.getElementById("regIdentity").value.trim().toLowerCase();
   const password=document.getElementById("regPassword").value;
-  if(!name||!identity||password.length<6){showAuthError("Lengkapi nama, identitas, dan password minimal 6 karakter.");return}
-  localStorage.setItem("suapuaAccount",JSON.stringify({name,identity,password}));
-  localStorage.setItem("suapuaUserName",name);
+  if(name.length<2){showAuthError("Nama lengkap minimal 2 karakter.");return}
+  if(!validEmail(identity)){showAuthError("Masukkan email yang valid, contoh: nama@email.com");return}
+  if(password.length<6){showAuthError("Password minimal 6 karakter.");return}
+  const list=getAccounts();
+  if(list.some(a=>String(a.identity).toLowerCase()===identity)){
+    showAuthError("Email sudah terdaftar. Silakan masuk atau gunakan email lain.");
+    switchAuth("login");
+    document.getElementById("loginIdentity").value=identity;
+    return;
+  }
+  list.push({name,identity,password,createdAt:new Date().toISOString()});
+  saveAccounts(list);
+  localStorage.setItem("suapuaSessionEmail",identity);
   localStorage.setItem("suapuaLoggedIn","1");
+  localStorage.setItem("suapuaUserName",name);
   applyUserName();
   document.getElementById("authScreen").classList.remove("show");
-  nav("home");showToast("Akun berhasil dibuat dan Anda sudah masuk.");
+  nav("home");
+  showToast("Akun berhasil dibuat. Anda sudah login.");
 }
 function doLogin(){
+  hideAuthError();
   const identity=document.getElementById("loginIdentity").value.trim().toLowerCase();
   const password=document.getElementById("loginPassword").value;
-  const acc=getAccount();
-  if(!acc){showAuthError("Belum ada akun lokal. Silakan daftar terlebih dahulu.");return}
-  if(identity!==String(acc.identity).toLowerCase() || password!==acc.password){showAuthError("Identitas atau password tidak sesuai.");return}
+  if(!validEmail(identity)){showAuthError("Masukkan email yang valid.");return}
+  if(!password){showAuthError("Masukkan password.");return}
+  const acc=getAccounts().find(a=>String(a.identity||"").toLowerCase()===identity);
+  if(!acc){showAuthError("Akun tidak ditemukan. Silakan Daftar terlebih dahulu.");return}
+  if(String(acc.password)!==password){showAuthError("Password salah. Coba lagi.");return}
+  localStorage.setItem("suapuaSessionEmail",identity);
   localStorage.setItem("suapuaLoggedIn","1");
-  localStorage.setItem("suapuaUserName",acc.name);
+  localStorage.setItem("suapuaUserName",acc.name||"Pengguna SUAPUA");
   applyUserName();
   document.getElementById("authScreen").classList.remove("show");
-  nav("home");showToast("Selamat datang kembali, "+acc.name+".");
+  nav("home");
+  showToast("Login berhasil. Selamat datang, "+(acc.name||"Pengguna")+".");
 }
 function togglePassword(id,btn){
   const el=document.getElementById(id);
@@ -2287,440 +2392,20 @@ function markNotificationsRead(){
   renderNotifications();showToast("Notifikasi ditandai sudah dibaca.");
 }
 function formatDate(d){if(!d)return"-";return new Date(d+"T00:00:00").toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"});}
-applyUserName();renderNotifications();filterInfo("Semua");renderHome();updateReportStep();renderHistory();renderSettings();
 
 /* =========================================================
-   SUAPUA CLOUD MODE
-   Backend: Supabase Auth + Postgres + Storage
-   Map: Leaflet + OpenStreetMap tiles + user-triggered geocoding
+   STABLE LOCAL AUTH BOOT
 ========================================================= */
-const SUAPUA_SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
-const SUAPUA_SUPABASE_ANON_KEY = "YOUR-PUBLISHABLE-ANON-KEY";
-const SUAPUA_CLOUD_CONFIGURED =
-  !SUAPUA_SUPABASE_URL.includes("YOUR-PROJECT") &&
-  !SUAPUA_SUPABASE_ANON_KEY.includes("YOUR-PUBLISHABLE");
+migrateOldAccount();
+seedDemoAccount();
+if(!getAccount()){localStorage.removeItem("suapuaLoggedIn");}
+applyUserName();renderNotifications();filterInfo("Semua");renderHome();updateReportStep();renderHistory();renderSettings();
 
-let cloudClient = null;
-let cloudUser = null;
-let mapInstance = null;
-let mapMarker = null;
-let mapReady = false;
-
-function cloudIsReady(){return !!cloudClient;}
-function setCloudStatus(online){
-  const el=document.getElementById("cloudStatus");if(!el)return;
-  el.innerText=online?"● Online":"● Lokal";
-  el.classList.toggle("offline",!online);
-  const note=document.getElementById("authModeNote");
-  if(note)note.innerText=SUAPUA_CLOUD_CONFIGURED
-    ? "Akun terhubung ke sistem online SUAPUA."
-    : "Mode lokal aktif karena Supabase belum dikonfigurasi. Untuk akun online multi-pengguna, isi URL dan publishable/anon key Supabase.";
-}
-function getUserName(){
-  if(cloudUser?.user_metadata?.full_name) return cloudUser.user_metadata.full_name;
-  return (localStorage.getItem("suapuaUserName")||"").trim() || "Pengguna";
-}
-function getAccount(){
-  const a=cloudUser;
-  if(a) return {name:getUserName(),identity:a.email||a.phone||"Akun online"};
-  try{return JSON.parse(localStorage.getItem("suapuaAccount")||"null")}catch(e){return null}
-}
-function isLoggedIn(){return !!cloudUser || localStorage.getItem("suapuaLoggedIn")==="1";}
-
-function applyUserName(){
-  const name=getUserName(), ini=initials(name), account=getAccount();
-  ["sidebarName","profileName","welcomeName"].forEach(id=>{const el=document.getElementById(id);if(el)el.innerText=name});
-  ["sidebarAvatar","topAvatar","profileAvatar"].forEach(id=>{const el=document.getElementById(id);if(el)el.innerText=ini});
-  const identity=(account&&account.identity)||"Tamu";
-  ["accountMenuName","securityUser"].forEach(id=>{const el=document.getElementById(id);if(el)el.innerText=name});
-  const am=document.getElementById("accountMenuIdentity");if(am)am.innerText=identity;
-  const pi=document.getElementById("profileIdentity");if(pi)pi.innerText=identity;
-  const badge=document.getElementById("notificationBadge");if(badge)badge.innerText=getUnreadCount();
-}
-
-async function initCloud(){
-  if(!SUAPUA_CLOUD_CONFIGURED){
-    setCloudStatus(false);
-    return;
-  }
-  try{
-    cloudClient=window.supabase.createClient(SUAPUA_SUPABASE_URL,SUAPUA_SUPABASE_ANON_KEY);
-    const {data}=await cloudClient.auth.getSession();
-    cloudUser=data?.session?.user||null;
-    setCloudStatus(!!cloudUser);
-    if(cloudUser){
-      await loadCloudProfile();
-      await loadCloudReports();
-      applyUserName();
-      await refreshCloudNotifications();
-      subscribeRealtime();
-    }
-  }catch(err){
-    console.error(err);setCloudStatus(false);
-    showToast("Cloud belum dapat dihubungkan. Mode lokal tetap tersedia.");
-  }
-}
-
-async function loadCloudProfile(){
-  if(!cloudUser)return;
-  const {data,error}=await cloudClient.from("profiles").select("*").eq("id",cloudUser.id).maybeSingle();
-  if(!error && data){
-    localStorage.setItem("suapuaUserName",data.full_name||cloudUser.email||"Pengguna");
-    localStorage.setItem("suapuaRole",data.role||"citizen");
-  }
-}
-async function ensureCloudProfile(name){
-  if(!cloudUser)return;
-  const {error}=await cloudClient.from("profiles").upsert({
-    id:cloudUser.id,
-    full_name:name,
-    email:cloudUser.email||null
-  },{onConflict:"id"});
-  if(error)console.warn("profile upsert",error);
-}
-async function loadCloudReports(){
-  if(!cloudUser)return;
-  const {data,error}=await cloudClient.from("reports").select("*").order("created_at",{ascending:false});
-  if(error){console.error(error);showToast("Gagal memuat laporan online.");return}
-  reports=(data||[]).map(mapCloudReport);
-  localStorage.setItem("suapuaReports",JSON.stringify(reports));
-  renderHome();renderHistory();renderAdmin();renderNotifications();
-}
-function mapCloudReport(r){
-  return {
-    id:r.ticket,title:r.title,category:r.category,location:r.location,
-    latitude:r.latitude,longitude:r.longitude,accuracy:r.location_accuracy,
-    date:(r.created_at||"").slice(0,10),status:r.status,description:r.description,
-    reporter:r.reporter_name,user_id:r.user_id,cloud_id:r.id,photo_url:r.photo_url,
-    _seen:r.seen===true
-  };
-}
-function subscribeRealtime(){
-  if(!cloudClient||!cloudUser)return;
-  cloudClient.channel("suapua-reports-live")
-    .on("postgres_changes",{event:"*",schema:"public",table:"reports"},async payload=>{
-      await loadCloudReports();
-      if(payload.eventType==="UPDATE")showToast("Ada pembaruan laporan dari petugas.");
-    }).subscribe();
-}
-
-async function doRegister(){
-  const name=document.getElementById("regName").value.trim();
-  const identity=document.getElementById("regIdentity").value.trim().toLowerCase();
-  const password=document.getElementById("regPassword").value;
-  if(!name||!identity||password.length<6){showAuthError("Lengkapi nama, email, dan password minimal 6 karakter.");return}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identity)){showAuthError("Masukkan alamat email yang valid.");return}
-
-  // ONLINE: gunakan Supabase jika konfigurasi sudah diisi.
-  if(cloudIsReady()){
-    const {data,error}=await cloudClient.auth.signUp({
-      email:identity,password,
-      options:{data:{full_name:name}}
-    });
-    if(error){
-      const msg=String(error.message||"");
-      showAuthError(msg.toLowerCase().includes("already registered")||msg.toLowerCase().includes("already been registered")
-        ? "Email tersebut sudah terdaftar. Silakan masuk menggunakan password yang benar."
-        : msg);
-      return;
-    }
-    localStorage.setItem("suapuaUserName",name);
-    if(data?.session&&data?.user){
-      cloudUser=data.user;localStorage.setItem("suapuaLoggedIn","1");
-      await ensureCloudProfile(name);setCloudStatus(true);applyUserName();
-      document.getElementById("authScreen").classList.remove("show");
-      await loadCloudReports();subscribeRealtime();nav("home");
-      showToast("Akun online berhasil dibuat.");
-    }else{
-      showAuthError("Akun berhasil dibuat. Cek email untuk verifikasi, lalu kembali ke halaman login.");
-      switchAuth("login");
-      document.getElementById("loginIdentity").value=identity;
-    }
-    return;
-  }
-
-  // LOKAL: tetap bisa dipakai untuk demo jika Supabase belum dikonfigurasi.
-  localStorage.setItem("suapuaAccount",JSON.stringify({name,identity,password}));
-  localStorage.setItem("suapuaUserName",name);
-  localStorage.setItem("suapuaLoggedIn","1");
+// Enter opens login if there is no active session. Existing sessions are restored automatically.
+window.addEventListener("load",()=>{
   applyUserName();
-  document.getElementById("authScreen").classList.remove("show");
-  nav("home");
-  showToast("Akun demo berhasil dibuat dan Anda sudah masuk.");
-}
-
-async function doLogin(){
-  const identity=document.getElementById("loginIdentity").value.trim().toLowerCase();
-  const password=document.getElementById("loginPassword").value;
-  if(!identity||!password){showAuthError("Masukkan email dan password.");return}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identity)){showAuthError("Masukkan email yang valid.");return}
-
-  // ONLINE: jika Supabase tersedia, login menggunakan Auth.
-  if(cloudIsReady()){
-    const {data,error}=await cloudClient.auth.signInWithPassword({email:identity,password});
-    if(error){
-      const msg=String(error.message||"");
-      const low=msg.toLowerCase();
-      if(low.includes("email not confirmed")){
-        showAuthError("Email belum diverifikasi. Cek kotak masuk email Anda, lalu coba login lagi.");
-      }else if(low.includes("invalid login credentials")){
-        showAuthError("Email atau password salah.");
-      }else{
-        showAuthError(msg||"Login gagal. Coba lagi.");
-      }
-      return;
-    }
-    cloudUser=data?.user||null;
-    if(!cloudUser){showAuthError("Sesi login tidak ditemukan. Silakan coba lagi.");return}
-    localStorage.setItem("suapuaLoggedIn","1");
-    await loadCloudProfile();
-    await ensureCloudProfile(getUserName());
-    setCloudStatus(true);applyUserName();
-    document.getElementById("authScreen").classList.remove("show");
-    await loadCloudReports();subscribeRealtime();nav("home");
-    showToast("Berhasil masuk ke akun online.");
-    return;
-  }
-
-  // LOKAL: login demo untuk file HTML yang belum diberi kredensial Supabase.
-  const acc=getAccount();
-  if(!acc){showAuthError("Belum ada akun di perangkat ini. Silakan daftar terlebih dahulu.");return}
-  if(identity!==String(acc.identity||"").toLowerCase()||password!==String(acc.password||"")){
-    showAuthError("Email atau password tidak sesuai.");return;
-  }
-  localStorage.setItem("suapuaLoggedIn","1");
-  localStorage.setItem("suapuaUserName",acc.name||"Pengguna");
-  applyUserName();
-  document.getElementById("authScreen").classList.remove("show");
-  nav("home");
-  showToast("Berhasil masuk ke akun demo.");
-}
-
-async function doLogout(){
-  if(cloudClient){
-    const {error}=await cloudClient.auth.signOut();
-    if(error)console.warn(error);
-  }
-  cloudUser=null;
-  localStorage.removeItem("suapuaLoggedIn");
-  closeLogoutConfirm();closeOverlays();setCloudStatus(false);
-  document.getElementById("authScreen").classList.add("show");
-  switchAuth("login");
-  showToast("Anda telah keluar dari akun.");
-}
-
-async function openEditProfile(){
-  const name=prompt("Nama lengkap:",getUserName());
-  if(name===null)return;
-  const clean=name.trim();if(!clean){showToast("Nama tidak boleh kosong.");return}
-  localStorage.setItem("suapuaUserName",clean);
-  if(cloudUser){
-    const {error}=await cloudClient.from("profiles").update({full_name:clean}).eq("id",cloudUser.id);
-    if(error){showToast("Gagal menyimpan profil online.");return}
-    await cloudClient.auth.updateUser({data:{full_name:clean}});
-  }
-  applyUserName();showToast("Profil berhasil diperbarui.");
-}
-
-async function submitReport(){
-  const ticket="SP-"+new Date().getFullYear()+"-"+String(Math.floor(1000+Math.random()*9000));
-  const r={
-    id:ticket,reporter:getUserName(),
-    title:document.getElementById("judul").value.trim(),
-    category:document.getElementById("kategori").value,
-    location:document.getElementById("lokasi").value.trim(),
-    latitude:parseFloat(document.getElementById("latitude").value)||null,
-    longitude:parseFloat(document.getElementById("longitude").value)||null,
-    accuracy:parseFloat(document.getElementById("locationAccuracy").value)||null,
-    date:new Date().toISOString().slice(0,10),status:"Baru",
-    description:document.getElementById("isi").value.trim()
-  };
-  if(cloudIsReady()&&cloudUser){
-    const {data,error}=await cloudClient.from("reports").insert({
-      ticket:r.id,user_id:cloudUser.id,reporter_name:r.reporter,title:r.title,
-      category:r.category,location:r.location,latitude:r.latitude,longitude:r.longitude,
-      location_accuracy:r.accuracy,description:r.description,status:"Baru"
-    }).select("*").single();
-    if(error){showToast("Laporan gagal disimpan online: "+error.message);return}
-    r.cloud_id=data.id;
-  }else{
-    reports.unshift(r);
-    localStorage.setItem("suapuaReports",JSON.stringify(reports));
-  }
-  currentTicket=ticket;lastSubmitted=r;
-  document.getElementById("newTicket").innerText=ticket;
-  document.getElementById("reportScreen").classList.remove("active");
-  document.getElementById("submittedScreen").classList.add("active");
-  document.getElementById("pageTitle").innerText="Laporan Terkirim";
-  showToast(cloudUser?"Laporan tersimpan di cloud.":"Laporan tersimpan di perangkat.");
-  if(cloudUser)await loadCloudReports();
-}
-
-async function checkStatus(){
-  const q=document.getElementById("statusSearch").value.trim().toUpperCase();
-  let r=null;
-  if(cloudIsReady()&&cloudUser){
-    const {data}=await cloudClient.from("reports").select("*").eq("ticket",q).maybeSingle();
-    if(data)r=mapCloudReport(data);
-  }else{
-    r=reports.find(x=>x.id.toUpperCase()===q)||(q===currentTicket?lastSubmitted:null);
-  }
-  const box=document.getElementById("statusResult");
-  if(!r){box.innerHTML='<div class="empty"><div class="empty-icon">🔎</div>Nomor laporan tidak ditemukan atau bukan milik akun ini.</div>';return}
-  const order=["Baru","Diproses","Selesai"],idx=order.indexOf(r.status);
-  box.innerHTML=`<div class="card" style="box-shadow:none"><div class="card-header"><div><h3>${r.title}</h3><span>${r.id} • ${r.category}</span></div><span class="status ${getStatusClass(r.status)}">${r.status}</span></div><div class="card-body"><div class="detail-row"><div class="detail-label">Pelapor</div><div class="detail-value">${r.reporter||getUserName()}</div></div><div class="detail-row"><div class="detail-label">Lokasi</div><div class="detail-value">${r.location}</div></div><div class="detail-row"><div class="detail-label">Deskripsi</div><div class="detail-value">${r.description}</div></div><div class="timeline">
-    <div class="timeline-item done"><div class="timeline-dot"></div><strong>Laporan diterima</strong><p>Pengaduan berhasil masuk ke sistem.</p></div>
-    <div class="timeline-item ${idx>=1?"done":idx===0?"current":""}"><div class="timeline-dot"></div><strong>Verifikasi petugas</strong><p>Petugas memeriksa laporan dan bukti.</p></div>
-    <div class="timeline-item ${idx>=1?"current":""} ${idx>=2?"done":""}"><div class="timeline-dot"></div><strong>Diproses</strong><p>Laporan diteruskan untuk tindak lanjut.</p></div>
-    <div class="timeline-item ${idx>=2?"done":""}"><div class="timeline-dot"></div><strong>Selesai</strong><p>Hasil tindak lanjut dicatat oleh petugas.</p></div>
-  </div></div></div>`;
-}
-
-async function renderAdmin(){
-  const tb=document.getElementById("adminTable");if(!tb)return;
-  if(cloudIsReady()&&cloudUser){
-    const role=localStorage.getItem("suapuaRole")||"citizen";
-    if(!["admin","officer"].includes(role)){
-      tb.innerHTML='<tr><td colspan="4"><div class="empty">Akun ini belum memiliki akses petugas.</div></td></tr>';return;
-    }
-    const {data,error}=await cloudClient.from("reports").select("*").order("created_at",{ascending:false});
-    if(!error)reports=(data||[]).map(mapCloudReport);
-  }
-  tb.innerHTML=reports.map(r=>`<tr><td><span class="ticket">${r.id}</span></td><td><div class="report-title">${r.title}</div><div class="report-category">${r.category}</div></td><td><span class="status ${getStatusClass(r.status)}">${r.status}</span></td><td><div class="admin-actions"><select onchange="changeStatus('${r.id}',this.value)"><option value="">Ubah</option><option>Baru</option><option>Diproses</option><option>Selesai</option><option>Ditolak</option></select><button class="btn" style="padding:7px 10px;background:#e8f6f0;color:#087f5b" onclick="showDetail('${r.id}')">Detail</button></div></td></tr>`).join("");
-  document.getElementById("adminNew").innerText=reports.filter(r=>r.status==="Baru").length;
-  document.getElementById("adminProcess").innerText=reports.filter(r=>r.status==="Diproses").length;
-  document.getElementById("adminDone").innerText=reports.filter(r=>r.status==="Selesai").length;
-}
-
-async function changeStatus(id,status){
-  if(!status)return;
-  if(cloudIsReady()&&cloudUser){
-    const role=localStorage.getItem("suapuaRole")||"citizen";
-    if(!["admin","officer"].includes(role)){showToast("Akun bukan petugas.");return}
-    const {error}=await cloudClient.from("reports").update({status}).eq("ticket",id);
-    if(error){showToast("Gagal mengubah status: "+error.message);return}
-    await loadCloudReports();showToast(id+" diubah menjadi "+status);if(id===currentTicket)checkStatus();return;
-  }
-  const r=reports.find(x=>x.id===id);if(!r)return;
-  r.status=status;localStorage.setItem("suapuaReports",JSON.stringify(reports));
-  renderAdmin();renderNotifications();renderHistory();showToast(id+" diubah menjadi "+status);if(id===currentTicket)checkStatus();
-}
-
-/* ---------- Real GPS + real map ---------- */
-function initRealMap(){
-  if(mapReady||typeof L==="undefined")return;
-  const el=document.getElementById("leafletMap");if(!el)return;
-  mapInstance=L.map(el,{zoomControl:true}).setView([-2.5489,118.0149],5);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{
-    maxZoom:19,attribution:'&copy; OpenStreetMap contributors'
-  }).addTo(mapInstance);
-  mapInstance.on("click",e=>setMapLocation(e.latlng.lat,e.latlng.lng,null));
-  mapReady=true;
-  setTimeout(()=>mapInstance.invalidateSize(),250);
-}
-function setMapLocation(lat,lng,address,accuracy){
-  initRealMap();if(!mapInstance)return;
-  const latNum=Number(lat),lngNum=Number(lng);
-  document.getElementById("latitude").value=latNum;
-  document.getElementById("longitude").value=lngNum;
-  if(accuracy)document.getElementById("locationAccuracy").value=accuracy;
-  if(address)document.getElementById("lokasi").value=address;
-  if(mapMarker)mapMarker.setLatLng([latNum,lngNum]);
-  else mapMarker=L.marker([latNum,lngNum]).addTo(mapInstance);
-  mapMarker.bindPopup(address||"Lokasi dipilih").openPopup();
-  mapInstance.setView([latNum,lngNum],16);
-  const s=document.getElementById("locationStatus");
-  if(s)s.innerText=accuracy?`GPS aktif • akurasi ±${Math.round(accuracy)} m`:"Titik lokasi dipilih dari peta";
-}
-async function reverseGeocode(lat,lng){
-  try{
-    const url=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`;
-    const res=await fetch(url,{headers:{"Accept":"application/json"}});
-    if(!res.ok)throw new Error("Reverse geocoding gagal");
-    const data=await res.json();
-    return data.display_name||"Lokasi GPS";
-  }catch(e){return "Lokasi GPS terdeteksi";}
-}
-function detectGPS(){
-  if(!window.isSecureContext||!navigator.geolocation){
-    showToast("GPS browser membutuhkan HTTPS dan dukungan lokasi.");
-    return;
-  }
-  const s=document.getElementById("locationStatus");if(s)s.innerText="Meminta izin lokasi...";
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    const {latitude,longitude,accuracy}=pos.coords;
-    const address=await reverseGeocode(latitude,longitude);
-    setMapLocation(latitude,longitude,address,accuracy);
-    showToast("Lokasi GPS berhasil dideteksi.");
-  },err=>{
-    showToast(err.code===1?"Izin lokasi ditolak. Silakan izinkan GPS di browser.":"Lokasi tidak dapat diperoleh.");
-  },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
-}
-async function searchPlace(){
-  const q=document.getElementById("lokasi").value.trim();
-  if(!q){showToast("Ketik nama tempat atau alamat terlebih dahulu.");return}
-  const s=document.getElementById("locationStatus");if(s)s.innerText="Mencari lokasi...";
-  try{
-    const url=`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=${encodeURIComponent(q)}`;
-    const res=await fetch(url,{headers:{"Accept":"application/json"}});
-    if(!res.ok)throw new Error("Search gagal");
-    const results=await res.json();
-    if(!results.length){showToast("Lokasi tidak ditemukan.");return}
-    const best=results[0];
-    setMapLocation(best.lat,best.lon,best.display_name,null);
-    showToast("Lokasi ditemukan dan ditandai di peta.");
-  }catch(e){
-    console.error(e);showToast("Pencarian lokasi gagal. Coba tulis alamat yang lebih lengkap.");
-  }
-}
-function pickMapLocation(){
-  initRealMap();
-  if(mapInstance)showToast("Klik langsung pada peta untuk memilih titik lokasi.");
-}
-
-/* Hook navigation so map initializes only when its screen is opened. */
-const _suapuaNavOriginal=nav;
-nav=function(name,el){
-  _suapuaNavOriginal(name,el);
-  if(name==="report"){setTimeout(()=>{initRealMap();if(mapInstance)mapInstance.invalidateSize()},100)}
-  if(name==="profile")applyUserName();
-};
-
-async function loadCloudAfterLogin(){
-  if(!cloudClient||!cloudUser)return;
-  await loadCloudProfile();await loadCloudReports();subscribeRealtime();applyUserName();setCloudStatus(true);
-}
-
-window.addEventListener("DOMContentLoaded",async()=>{
-  if(SUAPUA_CLOUD_CONFIGURED){
-    await initCloud();
-    if(cloudClient){
-      cloudClient.auth.onAuthStateChange(async(_event,session)=>{
-        cloudUser=session?.user||null;
-        if(cloudUser){
-          localStorage.setItem("suapuaLoggedIn","1");
-          await loadCloudAfterLogin();
-          document.getElementById("splash").style.display="none";
-          document.getElementById("authScreen").classList.remove("show");
-        }else{
-          localStorage.removeItem("suapuaLoggedIn");
-          setCloudStatus(false);
-        }
-      });
-    }
-  }else{
-    setCloudStatus(false);
-    // Mode lokal: pulihkan sesi demo yang masih tersimpan di browser.
-    if(localStorage.getItem("suapuaLoggedIn")==="1" && getAccount()){
-      document.getElementById("splash").style.display="none";
-      document.getElementById("authScreen").classList.remove("show");
-      applyUserName();
-      nav("home");
-    }
-  }
-  initRealMap();
+  if(isLoggedIn()){document.getElementById("splash").style.display="none";nav("home");}
 });
-
 </script>
 
 </body>
